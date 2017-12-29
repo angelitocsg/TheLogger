@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace TheLogger
@@ -28,16 +27,47 @@ namespace TheLogger
     /// </summary>
     public class Log
     {
-        private static LogType logLevel = LogType.Info;
-        private static AppType appType = AppType.None;
-        private static string message = string.Empty;
-        private const string stringLog = "[{0}] [{1}] {2}";
-        private static string fileName = "log.txt";
-        private static string dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
+        private const String stringLog = "[{0}] [{1}] {2}";
 
-        public static LogType LogLevel { get { return logLevel; } set { logLevel = value; } }
-        public static AppType AppType { get { return appType; } set { appType = value; } }
+        private static LogType _logLevel = LogType.Info;
+        private static AppType _appType = AppType.None;
+        private static String _fileName = "log.txt";
+        private static String _filePath = Environment.CurrentDirectory;
+
+        private static String message = string.Empty;
+        private static String dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
+
+        public static LogType LogLevel { get { return _logLevel; } internal set { _logLevel = value; } }
+        public static AppType AppType { get { return _appType; } internal set { _appType = value; } }
+        public static String FileName { get { return _fileName; } internal set { _fileName = value; } }
+        public static String FilePath { get { return _filePath; } internal set { _filePath = value; } }
         public static Log er { get { return new Log(); } }
+
+        /// <summary>
+        /// Config how Logger will work
+        /// </summary>
+        /// <param name="fileName">log.txt</param>
+        /// <param name="filePath">Environment.CurrentDirectory</param>
+        /// <param name="logLevel">Warning</param>
+        /// <param name="appType">None</param>
+        public static void Setup(String fileName, String filePath, LogType logLevel, AppType appType)
+        {
+            Log.FilePath = filePath;
+            Log.FileName = fileName;
+            Log.LogLevel = logLevel;
+            Log.AppType = appType;
+            SetupWrite();
+        }
+        private static void SetupWrite()
+        {
+            StringBuilder sb = new StringBuilder().Append(Environment.NewLine);
+            sb.Append("### LOGGER SETUP #####################").Append(Environment.NewLine);
+            sb.AppendFormat("# FileName: {0}", Log.FileName).Append(Environment.NewLine);
+            sb.AppendFormat("# LogLevel: {0}", Log.LogLevel).Append(Environment.NewLine);
+            sb.AppendFormat("# AppType: {0}", Log.AppType).Append(Environment.NewLine);
+            sb.Append("######################################").Append(Environment.NewLine);
+            Write(sb.ToString());
+        }
 
         #region Log by Type
         public static void Critical(String message)
@@ -98,8 +128,7 @@ namespace TheLogger
             var result = string.Empty;
             try
             {
-                var path = Environment.CurrentDirectory;
-                using (System.IO.StreamReader sr = new System.IO.StreamReader(path + "\\" + fileName, Encoding.Default))
+                using (System.IO.StreamReader sr = new System.IO.StreamReader(_filePath + "\\" + _fileName, Encoding.Default))
                 {
                     if (lines == 0)
                     {
@@ -183,10 +212,9 @@ namespace TheLogger
         /// <param name="message"></param>
         private static void write()
         {
-            var path = Environment.CurrentDirectory;
             try
             {
-                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(path + "\\" + fileName, true, Encoding.Default))
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(_filePath + "\\" + _fileName, true, Encoding.Default))
                 {
                     sw.WriteLine(message);
                     sw.Flush();
@@ -217,7 +245,7 @@ namespace TheLogger
         /// <param name="message"></param>
         private static void writeToConsole()
         {
-            if (appType == AppType.Console)
+            if (_appType == AppType.Console)
             {
                 System.Console.WriteLine(message);
             }
