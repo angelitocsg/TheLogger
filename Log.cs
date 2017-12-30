@@ -223,9 +223,7 @@ namespace TheLogger
             }
             catch (Exception ex)
             {
-                System.Threading.Thread.Sleep(2);
-                write();
-                Write(LogType.Critical, ex.Message);
+                throw new Exception(String.Format("Falha ao acessar caminho {0}\\{1}. ({2})", _filePath, _fileName, ex.Message));
             }
         }
 
