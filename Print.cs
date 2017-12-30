@@ -7,7 +7,7 @@ namespace TheLogger
 {
     public class Print
     {
-        public static string R(object obj, int recursion = 0)
+        public static string R(object obj, int recursion)
         {
             StringBuilder result = new StringBuilder();
 
@@ -54,7 +54,7 @@ namespace TheLogger
                                     // Call var_dump() again to list child properties
                                     // This throws an exception if the current property value
                                     // is of an unsupported type (eg. it has not properties)
-                                    result.Append(r(value, recursion + 1));
+                                    result.Append(R(value, recursion + 1));
                                 }
                                 else
                                 {
@@ -71,11 +71,11 @@ namespace TheLogger
                                         result.AppendFormat("{0}{1} = {2}\n", indent, elementName, element.ToString());
 
                                         // Display the child properties
-                                        result.Append(r(element, recursion + 2));
+                                        result.Append(R(element, recursion + 2));
                                         elementCount++;
                                     }
 
-                                    result.Append(r(value, recursion + 1));
+                                    result.Append(R(value, recursion + 1));
                                 }
                             }
                             catch { }
