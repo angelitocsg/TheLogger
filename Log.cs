@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace TheLogger
@@ -33,6 +34,7 @@ namespace TheLogger
         private static AppType _appType = AppType.None;
         private static String _fileName = "log.txt";
         private static String _filePath = Environment.CurrentDirectory;
+        private static bool _forceCloseOnError = false;
 
         private static String message = string.Empty;
         private static String dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
@@ -50,8 +52,9 @@ namespace TheLogger
         /// <param name="filePath">Environment.CurrentDirectory</param>
         /// <param name="logLevel">Warning</param>
         /// <param name="appType">None</param>
-        public static void Setup(String fileName, String filePath, LogType logLevel, AppType appType)
+        public static void Setup(String fileName, String filePath, LogType logLevel, AppType appType, bool forceCloseOnError)
         {
+            _forceCloseOnError = forceCloseOnError;
             Log.FilePath = filePath;
             Log.FileName = fileName;
             Log.LogLevel = logLevel;
@@ -60,6 +63,7 @@ namespace TheLogger
         }
         private static void SetupWrite()
         {
+            try { File.Delete(FileName); } catch { }
             StringBuilder sb = new StringBuilder().Append(Environment.NewLine);
             sb.Append("### LOGGER SETUP #####################").Append(Environment.NewLine);
             sb.AppendFormat("# FileName: {0}", Log.FileName).Append(Environment.NewLine);
@@ -179,8 +183,11 @@ namespace TheLogger
         {
             Write(LogType.Critical, exception.Message);
             Write(LogType.Debug, exception.StackTrace);
-            Write(LogType.Critical, "Application exit code 99");
-            Environment.Exit(99);
+            if (_forceCloseOnError)
+            {
+                Write(LogType.Critical, "Application exit code 99");
+                Environment.Exit(99);
+            }
         }
 
         /// <summary>
