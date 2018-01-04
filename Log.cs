@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Principal;
 using System.Text;
 
 namespace TheLogger
@@ -10,14 +11,14 @@ namespace TheLogger
         Critical = 1,
         Error = 2,
         Info = 3,
-        Debug = 4,
-        Warning = 5
+        Warning = 4,
+        Debug = 5,
     }
 
     public enum AppType
     {
-        Console,
-        None
+        None = 0,
+        Console = 1
     }
 
     /// <summary>
@@ -33,7 +34,7 @@ namespace TheLogger
         private static LogType _logLevel = LogType.Info;
         private static AppType _appType = AppType.None;
         private static String _fileName = "log.txt";
-        private static String _filePath = Environment.CurrentDirectory;
+        private static String _filePath = AppDomain.CurrentDomain.BaseDirectory;
         private static bool _forceCloseOnError = false;
 
         private static String message = string.Empty;
@@ -61,6 +62,12 @@ namespace TheLogger
             Log.AppType = appType;
             SetupWrite();
         }
+        private static bool IsAdministrator()
+        {
+            WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
         private static void SetupWrite()
         {
             try { File.Delete(FileName); } catch { }
@@ -69,6 +76,7 @@ namespace TheLogger
             sb.AppendFormat("# FileName: {0}", Log.FileName).Append(Environment.NewLine);
             sb.AppendFormat("# LogLevel: {0}", Log.LogLevel).Append(Environment.NewLine);
             sb.AppendFormat("# AppType: {0}", Log.AppType).Append(Environment.NewLine);
+            sb.AppendFormat("# Usuário atual {0}", (IsAdministrator() ? "é administrador" : "não é administrador")).Append(Environment.NewLine);
             sb.Append("######################################").Append(Environment.NewLine);
             Write(sb.ToString());
         }
@@ -230,7 +238,7 @@ namespace TheLogger
             }
             catch (Exception ex)
             {
-                throw new Exception(String.Format("Falha ao acessar caminho {0}\\{1}. ({2})", _filePath, _fileName, ex.Message));
+                if (Log._forceCloseOnError) throw new Exception(String.Format("Falha ao acessar caminho {0}\\{1}. ({2})", _filePath, _fileName, ex.Message));
             }
         }
 
