@@ -30,21 +30,18 @@ namespace TheLogger
     public class Log
     {
         private const String stringLog = "[{0}] [{1}] {2}";
-
-        private static LogType _logLevel = LogType.Info;
-        private static AppType _appType = AppType.None;
-        private static String _fileName = "log.txt";
-        private static String _filePath = AppDomain.CurrentDomain.BaseDirectory;
         private static bool _forceCloseOnError = false;
 
         private static String message = string.Empty;
         private static String dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
 
-        public static LogType LogLevel { get { return _logLevel; } internal set { _logLevel = value; } }
-        public static AppType AppType { get { return _appType; } internal set { _appType = value; } }
-        public static String FileName { get { return _fileName; } internal set { _fileName = value; } }
-        public static String FilePath { get { return _filePath; } internal set { _filePath = value; } }
-        public static Log er { get { return new Log(); } }
+        public static LogType LogLevel { get; private set; } = LogType.Info;
+        public static AppType AppType { get; private set; } = AppType.None;
+
+        public static String FileName { get; private set; } = "log.txt";
+        public static String FilePath { get; private set; } = AppDomain.CurrentDomain.BaseDirectory;
+
+        public static Log Er { get { return new Log(); } }
 
         /// <summary>
         /// Config how Logger will work
@@ -140,7 +137,7 @@ namespace TheLogger
             var result = string.Empty;
             try
             {
-                using (System.IO.StreamReader sr = new System.IO.StreamReader(_filePath + "\\" + _fileName, Encoding.Default))
+                using (StreamReader sr = new StreamReader(FilePath + "\\" + FileName, Encoding.Default))
                 {
                     if (lines == 0)
                     {
@@ -229,7 +226,7 @@ namespace TheLogger
         {
             try
             {
-                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(_filePath + "\\" + _fileName, true, Encoding.Default))
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(FilePath + "\\" + FileName, true, Encoding.Default))
                 {
                     sw.WriteLine(message);
                     sw.Flush();
@@ -238,7 +235,7 @@ namespace TheLogger
             }
             catch (Exception ex)
             {
-                if (Log._forceCloseOnError) throw new Exception(String.Format("Falha ao acessar caminho {0}\\{1}. ({2})", _filePath, _fileName, ex.Message));
+                if (Log._forceCloseOnError) throw new Exception(String.Format("Falha ao acessar caminho {0}\\{1}. ({2})", FilePath, FileName, ex.Message));
             }
         }
 
@@ -258,7 +255,7 @@ namespace TheLogger
         /// <param name="message"></param>
         private static void writeToConsole()
         {
-            if (_appType == AppType.Console)
+            if (AppType == AppType.Console)
             {
                 System.Console.WriteLine(message);
             }
