@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Principal;
@@ -29,22 +29,19 @@ namespace TheLogger
     /// </summary>
     public class Log
     {
-        private const String stringLog = "[{0}] [{1}] {2}";
-
-        private static LogType _logLevel = LogType.Info;
-        private static AppType _appType = AppType.None;
-        private static String _fileName = "log.txt";
-        private static String _filePath = AppDomain.CurrentDomain.BaseDirectory;
+        private const string stringLog = "[{0}] [{1}] {2}";
         private static bool _forceCloseOnError = false;
 
-        private static String message = string.Empty;
-        private static String dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
+        private static string message = string.Empty;
+        private static string dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
 
-        public static LogType LogLevel { get { return _logLevel; } internal set { _logLevel = value; } }
-        public static AppType AppType { get { return _appType; } internal set { _appType = value; } }
-        public static String FileName { get { return _fileName; } internal set { _fileName = value; } }
-        public static String FilePath { get { return _filePath; } internal set { _filePath = value; } }
-        public static Log er { get { return new Log(); } }
+        public static LogType LogLevel { get; private set; } = LogType.Info;
+        public static AppType AppType { get; private set; } = AppType.None;
+
+        public static string FileName { get; private set; } = "log.txt";
+        public static string FilePath { get; private set; } = AppDomain.CurrentDomain.BaseDirectory;
+        
+        public static Log Er { get { return new Log(); } }
 
         /// <summary>
         /// Config how Logger will work
@@ -53,7 +50,7 @@ namespace TheLogger
         /// <param name="filePath">Environment.CurrentDirectory</param>
         /// <param name="logLevel">Warning</param>
         /// <param name="appType">None</param>
-        public static void Setup(String fileName, String filePath, LogType logLevel, AppType appType, bool forceCloseOnError)
+        public static void Setup(string fileName, string filePath, LogType logLevel, AppType appType, bool forceCloseOnError)
         {
             _forceCloseOnError = forceCloseOnError;
             Log.FilePath = filePath;
@@ -70,35 +67,36 @@ namespace TheLogger
         }
         private static void SetupWrite()
         {
-            try { File.Delete(FileName); } catch { }
+            //try { File.Delete(FileName); } catch { }
             StringBuilder sb = new StringBuilder().Append(Environment.NewLine);
             sb.Append("### LOGGER SETUP #####################").Append(Environment.NewLine);
             sb.AppendFormat("# FileName: {0}", Log.FileName).Append(Environment.NewLine);
             sb.AppendFormat("# LogLevel: {0}", Log.LogLevel).Append(Environment.NewLine);
             sb.AppendFormat("# AppType: {0}", Log.AppType).Append(Environment.NewLine);
+            sb.AppendFormat("# Usuário: {0}", Environment.UserName).Append(Environment.NewLine);
             sb.AppendFormat("# Usuário atual {0}", (IsAdministrator() ? "é administrador" : "não é administrador")).Append(Environment.NewLine);
             sb.Append("######################################").Append(Environment.NewLine);
             Write(sb.ToString());
         }
 
         #region Log by Type
-        public static void Critical(String message)
+        public static void Critical(string message)
         {
             Write(LogType.Critical, message);
         }
-        public static void Error(String message)
+        public static void Error(string message)
         {
             Write(LogType.Error, message);
         }
-        public static void Info(String message)
+        public static void Info(string message)
         {
             Write(LogType.Info, message);
         }
-        public static void Debug(String message)
+        public static void Debug(string message)
         {
             Write(LogType.Debug, message);
         }
-        public static void Warning(String message)
+        public static void Warning(string message)
         {
             Write(LogType.Warning, message);
         }
@@ -140,7 +138,7 @@ namespace TheLogger
             var result = string.Empty;
             try
             {
-                using (System.IO.StreamReader sr = new System.IO.StreamReader(_filePath + "\\" + _fileName, Encoding.Default))
+                using (StreamReader sr = new StreamReader(FilePath + "\\" + FileName, Encoding.Default))
                 {
                     if (lines == 0)
                     {
@@ -167,7 +165,7 @@ namespace TheLogger
         /// Log simple message
         /// </summary>
         /// <param name="message"></param>
-        public static void Write(String message)
+        public static void Write(string message)
         {
             Write(LogType.Info, message);
         }
@@ -190,7 +188,14 @@ namespace TheLogger
         public static void Write(Exception exception)
         {
             Write(LogType.Critical, exception.Message);
-            Write(LogType.Debug, exception.StackTrace);
+            Write(LogType.Critical, exception.StackTrace);
+
+            if (exception.InnerException != null)
+            {
+                Write(LogType.Critical, exception.Message);
+                Write(LogType.Critical, exception.StackTrace);
+            }
+
             if (_forceCloseOnError)
             {
                 Write(LogType.Critical, "Application exit code 99");
@@ -203,9 +208,9 @@ namespace TheLogger
         /// </summary>
         /// <param name="type"></param>
         /// <param name="user_message"></param>
-        public static void Write(LogType type, String user_message)
+        public static void Write(LogType type, string user_message)
         {
-            message = String.Format(stringLog, dateTimeToLog, type.ToString(), user_message);
+            message = string.Format(stringLog, dateTimeToLog, type.ToString(), user_message);
 
             if (Convert.ToInt16(type) <= Convert.ToInt16(LogLevel)) { write(); }
 
@@ -229,7 +234,10 @@ namespace TheLogger
         {
             try
             {
-                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(_filePath + "\\" + _fileName, true, Encoding.Default))
+                if (!Directory.Exists(FilePath))
+                    Directory.CreateDirectory(FilePath);
+
+                using (StreamWriter sw = new StreamWriter(FilePath + "\\" + FileName, true, Encoding.Default))
                 {
                     sw.WriteLine(message);
                     sw.Flush();
@@ -238,7 +246,7 @@ namespace TheLogger
             }
             catch (Exception ex)
             {
-                if (Log._forceCloseOnError) throw new Exception(String.Format("Falha ao acessar caminho {0}\\{1}. ({2})", _filePath, _fileName, ex.Message));
+                if (Log._forceCloseOnError) throw new Exception(string.Format("Falha ao acessar caminho {0}\\{1}. ({2})", FilePath, FileName, ex.Message));
             }
         }
 
@@ -258,9 +266,9 @@ namespace TheLogger
         /// <param name="message"></param>
         private static void writeToConsole()
         {
-            if (_appType == AppType.Console)
+            if (AppType == AppType.Console)
             {
-                System.Console.WriteLine(message);
+                Console.WriteLine(message);
             }
         }
         #endregion
