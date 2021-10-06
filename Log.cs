@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Principal;
@@ -40,7 +40,7 @@ namespace TheLogger
 
         public static string FileName { get; private set; } = "log.txt";
         public static string FilePath { get; private set; } = AppDomain.CurrentDomain.BaseDirectory;
-
+        
         public static Log Er { get { return new Log(); } }
 
         /// <summary>
@@ -67,12 +67,13 @@ namespace TheLogger
         }
         private static void SetupWrite()
         {
-            try { File.Delete(FileName); } catch { }
+            //try { File.Delete(FileName); } catch { }
             StringBuilder sb = new StringBuilder().Append(Environment.NewLine);
             sb.Append("### LOGGER SETUP #####################").Append(Environment.NewLine);
             sb.AppendFormat("# FileName: {0}", Log.FileName).Append(Environment.NewLine);
             sb.AppendFormat("# LogLevel: {0}", Log.LogLevel).Append(Environment.NewLine);
             sb.AppendFormat("# AppType: {0}", Log.AppType).Append(Environment.NewLine);
+            sb.AppendFormat("# Usuário: {0}", Environment.UserName).Append(Environment.NewLine);
             sb.AppendFormat("# Usuário atual {0}", (IsAdministrator() ? "é administrador" : "não é administrador")).Append(Environment.NewLine);
             sb.Append("######################################").Append(Environment.NewLine);
             Write(sb.ToString());
@@ -187,7 +188,14 @@ namespace TheLogger
         public static void Write(Exception exception)
         {
             Write(LogType.Critical, exception.Message);
-            Write(LogType.Debug, exception.StackTrace);
+            Write(LogType.Critical, exception.StackTrace);
+
+            if (exception.InnerException != null)
+            {
+                Write(LogType.Critical, exception.Message);
+                Write(LogType.Critical, exception.StackTrace);
+            }
+
             if (_forceCloseOnError)
             {
                 Write(LogType.Critical, "Application exit code 99");
@@ -226,7 +234,10 @@ namespace TheLogger
         {
             try
             {
-                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(FilePath + "\\" + FileName, true, Encoding.Default))
+                if (!Directory.Exists(FilePath))
+                    Directory.CreateDirectory(FilePath);
+
+                using (StreamWriter sw = new StreamWriter(FilePath + "\\" + FileName, true, Encoding.Default))
                 {
                     sw.WriteLine(message);
                     sw.Flush();
@@ -256,9 +267,7 @@ namespace TheLogger
         private static void writeToConsole()
         {
             if (AppType == AppType.Console)
-            {
-                System.Console.WriteLine(message);
-            }
+                Console.WriteLine(message);
         }
         #endregion
     }
