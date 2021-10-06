@@ -29,17 +29,17 @@ namespace TheLogger
     /// </summary>
     public class Log
     {
-        private const String stringLog = "[{0}] [{1}] {2}";
+        private const string stringLog = "[{0}] [{1}] {2}";
         private static bool _forceCloseOnError = false;
 
-        private static String message = string.Empty;
-        private static String dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
+        private static string message = string.Empty;
+        private static string dateTimeToLog { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); } }
 
         public static LogType LogLevel { get; private set; } = LogType.Info;
         public static AppType AppType { get; private set; } = AppType.None;
 
-        public static String FileName { get; private set; } = "log.txt";
-        public static String FilePath { get; private set; } = AppDomain.CurrentDomain.BaseDirectory;
+        public static string FileName { get; private set; } = "log.txt";
+        public static string FilePath { get; private set; } = AppDomain.CurrentDomain.BaseDirectory;
 
         public static Log Er { get { return new Log(); } }
 
@@ -50,7 +50,7 @@ namespace TheLogger
         /// <param name="filePath">Environment.CurrentDirectory</param>
         /// <param name="logLevel">Warning</param>
         /// <param name="appType">None</param>
-        public static void Setup(String fileName, String filePath, LogType logLevel, AppType appType, bool forceCloseOnError)
+        public static void Setup(string fileName, string filePath, LogType logLevel, AppType appType, bool forceCloseOnError)
         {
             _forceCloseOnError = forceCloseOnError;
             Log.FilePath = filePath;
@@ -79,23 +79,23 @@ namespace TheLogger
         }
 
         #region Log by Type
-        public static void Critical(String message)
+        public static void Critical(string message)
         {
             Write(LogType.Critical, message);
         }
-        public static void Error(String message)
+        public static void Error(string message)
         {
             Write(LogType.Error, message);
         }
-        public static void Info(String message)
+        public static void Info(string message)
         {
             Write(LogType.Info, message);
         }
-        public static void Debug(String message)
+        public static void Debug(string message)
         {
             Write(LogType.Debug, message);
         }
-        public static void Warning(String message)
+        public static void Warning(string message)
         {
             Write(LogType.Warning, message);
         }
@@ -164,7 +164,7 @@ namespace TheLogger
         /// Log simple message
         /// </summary>
         /// <param name="message"></param>
-        public static void Write(String message)
+        public static void Write(string message)
         {
             Write(LogType.Info, message);
         }
@@ -200,9 +200,9 @@ namespace TheLogger
         /// </summary>
         /// <param name="type"></param>
         /// <param name="user_message"></param>
-        public static void Write(LogType type, String user_message)
+        public static void Write(LogType type, string user_message)
         {
-            message = String.Format(stringLog, dateTimeToLog, type.ToString(), user_message);
+            message = string.Format(stringLog, dateTimeToLog, type.ToString(), user_message);
 
             if (Convert.ToInt16(type) <= Convert.ToInt16(LogLevel)) { write(); }
 
@@ -235,7 +235,7 @@ namespace TheLogger
             }
             catch (Exception ex)
             {
-                if (Log._forceCloseOnError) throw new Exception(String.Format("Falha ao acessar caminho {0}\\{1}. ({2})", FilePath, FileName, ex.Message));
+                if (Log._forceCloseOnError) throw new Exception(string.Format("Falha ao acessar caminho {0}\\{1}. ({2})", FilePath, FileName, ex.Message));
             }
         }
 
