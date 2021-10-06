@@ -267,9 +267,7 @@ namespace TheLogger
         private static void writeToConsole()
         {
             if (AppType == AppType.Console)
-            {
                 Console.WriteLine(message);
-            }
         }
         #endregion
     }
